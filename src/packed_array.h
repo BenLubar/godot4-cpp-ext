@@ -4,10 +4,13 @@
 
 // IWYU pragma: begin_exports
 
-#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/core/defs.hpp>
-#include <godot_cpp/templates/vector.hpp>
+
+#include <godot_cpp/classes/ref.hpp>
+
 #include <godot_cpp/variant/variant.hpp>
+
+#include <godot_cpp/templates/vector.hpp>
 
 // IWYU pragma: end_exports
 

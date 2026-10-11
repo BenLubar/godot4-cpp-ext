@@ -3,6 +3,7 @@
 #include "godot_squirrel_defs.h" // IWYU pragma: export
 
 #include <godot_cpp/core/defs.hpp>
+
 #include <godot_cpp/variant/string.hpp>
 
 #define SQUSEDOUBLE

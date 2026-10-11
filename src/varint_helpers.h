@@ -1,11 +1,13 @@
 #pragma once
 
 #include <godot_cpp/core/defs.hpp>
-#include <godot_cpp/templates/pair.hpp>
+
 #include <godot_cpp/variant/packed_byte_array.hpp>
 #include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/variant/packed_int64_array.hpp>
 #include <godot_cpp/variant/string.hpp>
+
+#include <godot_cpp/templates/pair.hpp>
 
 godot::Pair<uint64_t, int64_t> uvarint(const godot::PackedByteArray &p_buffer, int64_t p_offset = 0);
 godot::Pair<int64_t, int64_t> svarint(const godot::PackedByteArray &p_buffer, int64_t p_offset = 0);

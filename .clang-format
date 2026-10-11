@@ -125,24 +125,38 @@ IncludeCategories:
     Priority: -1
   - Regex: ^"def/.*"$
     Priority: 20
-  - Regex: ^"protocol/.*"$
-    Priority: 21
-  - Regex: ^"script/.*"$
-    Priority: 22
-  - Regex: ^"ui/.*"$
-    Priority: 23
-  - Regex: ^"util/.*"$
-    Priority: 24
-  - Regex: ^"(godot_.*)"$
+  - Regex: ^"editor/.*"$
     Priority: 30
-  - Regex: ^<thirdparty/.*>$
+  - Regex: ^"protocol/.*"$
     Priority: 40
-  - Regex: ^<godot_cpp/.*\.(h|hpp)>$
+  - Regex: ^"script/.*"$
     Priority: 50
-  - Regex: ^<.*\.(h|hpp)>$
+  - Regex: ^"resource/.*"$
     Priority: 60
-  - Regex: ^<.*>$
+  - Regex: ^"sim/.*"$
     Priority: 70
+  - Regex: ^"ui/.*"$
+    Priority: 80
+  - Regex: ^"util/.*"$
+    Priority: 90
+  - Regex: ^"(godot_.*)"$
+    Priority: 1030
+  - Regex: ^<thirdparty/.*>$
+    Priority: 1040
+  - Regex: ^<godot_cpp/core/.*\.(h|hpp)>$
+    Priority: 1050
+  - Regex: ^<godot_cpp/classes/.*\.(h|hpp)>$
+    Priority: 1051
+  - Regex: ^<godot_cpp/variant/.*\.(h|hpp)>$
+    Priority: 1052
+  - Regex: ^<godot_cpp/templates/.*\.(h|hpp)>$
+    Priority: 1053
+  - Regex: ^<godot_cpp/.*\.(h|hpp)>$
+    Priority: 1054
+  - Regex: ^<.*\.(h|hpp)>$
+    Priority: 1060
+  - Regex: ^<.*>$
+    Priority: 1070
   - Regex: ^".*"$
     Priority: 10
 # IncludeIsMainRegex: (Test)?$
