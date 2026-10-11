@@ -36,14 +36,19 @@ def init_precompiled_header(env, sources):
 
 	shared_object_builder = env["BUILDERS"]["SharedObject"]
 	shared_object_builder.add_action(".h", SCons.Defaults.ShCXXAction)
+	shared_object_builder.add_emitter(".h", SCons.Defaults.SharedObjectEmitter)
 
 	pch = env.SharedObject(
 		target="godot4-cpp-ext/src/dry.h.gch",
 		source=pch_file,
 		CXXFLAGS=["-x", "c++-header", "$CXXFLAGS"])
 
+	# since the godot-cpp headers are regenerated every time, the precompiled header needs to be as well
+	env.NoCache(pch)
+	env.AlwaysBuild(pch)
+
 	if env.get("use_llvm", False):
-		sources = [env.SharedObject(f, CXXFLAGS=["-include-pch", str(pch[0]), "$CXXFLAGS"]) for f in sources]
+		sources = [env.SharedObject(f, CXXFLAGS=["-include-pch", str(pch[0]), "-include", str(pch_file), "$CXXFLAGS"]) for f in sources]
 	else:
 		sources = [env.SharedObject(f) for f in sources]
 
