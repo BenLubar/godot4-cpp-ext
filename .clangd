@@ -1,0 +1,6 @@
+Style:
+  AngledHeaders:
+    - "godot_cpp/.*"
+Diagnostics:
+  ClangTidy:
+    FastCheckFilter: None
