@@ -199,17 +199,19 @@ private:
 		engine->register_singleton(T::get_class_static(), singleton);
 
 		if constexpr (godot::TypeInherits<godot::Node, T>::value) {
-			init_eager_globals().push_back([]() -> void {
-				add_singleton_node_to_scene_tree(T::get_singleton());
+			pre_init_eager_globals().push_back([singleton]() -> void {
+				add_singleton_node_to_scene_tree(singleton);
 			});
-		}
-
-		free_singletons().push_back([engine, singleton]() -> void {
-			engine->unregister_singleton(T::get_class_static());
-			if constexpr (!godot::TypeInherits<godot::Node, T>::value) {
+			free_singletons().push_back([engine]() -> void {
+				engine->unregister_singleton(T::get_class_static());
+				// Node is owned by and will be deleted by scene tree
+			});
+		} else {
+			free_singletons().push_back([engine, singleton]() -> void {
+				engine->unregister_singleton(T::get_class_static());
 				static_assert(!godot::TypeInherits<godot::RefCounted, T>::value);
 				memdelete(singleton);
-			}
-		});
+			});
+		}
 	}
 };

@@ -28,6 +28,8 @@
 
 using namespace godot;
 
+#include "dry_extra.h" // IWYU pragma: export
+
 // IWYU pragma: end_exports
 
 void initialize_shared_gdextension_types(godot::ModuleInitializationLevel p_level);
