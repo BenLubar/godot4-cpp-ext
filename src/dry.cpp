@@ -1,8 +1,15 @@
 #include "dry.h"
 
+#include "lazy_globals.h"
+
+#include <godot_cpp/classes/main_loop.hpp>
+
 #ifdef SQUIRREL_ENABLED
 #include "godot_squirrel_register_types.h"
 #endif
+
+#include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/window.hpp>
 
 void initialize_shared_gdextension_types(godot::ModuleInitializationLevel p_level) {
 #ifdef SQUIRREL_ENABLED
@@ -22,6 +29,23 @@ void initialize_shared_gdextension_singletons() {
 }
 
 void startup_shared_gdextension() {
+	if (!add_singletons_to_scene_tree().is_empty()) {
+		MainLoop *main_loop = Engine::get_singleton()->get_main_loop();
+		SceneTree *tree = Object::cast_to<SceneTree>(main_loop);
+		Window *tree_root = tree->get_root();
+		for (Node *node : add_singletons_to_scene_tree()) {
+			tree_root->add_child(node);
+		}
+		add_singletons_to_scene_tree().clear();
+	}
+
+	if (unlikely(Engine::get_singleton()->is_editor_hint())) {
+		// Don't wait for resources to load if we're importing or in the editor.
+		pre_init_eager_globals().clear();
+		init_eager_globals().clear();
+		return;
+	}
+
 	for (const std::function<void()> &pre_init_eager_global : pre_init_eager_globals()) {
 		pre_init_eager_global();
 	}

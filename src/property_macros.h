@@ -1,5 +1,7 @@
 #pragma once
 
+// IWYU pragma: private, include "dry.h"
+
 #include <godot_cpp/core/class_db.hpp> // IWYU pragma: export
 
 godot::String enum_property_hint(const godot::String &type_name, bool is_bitfield);

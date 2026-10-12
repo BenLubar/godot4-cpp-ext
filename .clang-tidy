@@ -33,8 +33,8 @@ Checks:
   - -readability-uppercase-literal-suffix
   - -readability-use-anyofallof
 FormatStyle: file
-HeaderFilterRegex: '.*\.h$'
-ExcludeHeaderFilterRegex: '(^|.*/)(thirdparty|squirrel|mbedtls|KTX-Software)/.*'
+HeaderFilterRegex: '.*\.(h|hpp)$'
+ExcludeHeaderFilterRegex: '(^|.*/)(thirdparty|squirrel|mbedtls|KTX-Software|steam)/.*'
 CheckOptions:
   bugprone-implicit-widening-of-multiplication-result.IgnoreConstantIntExpr: true
   modernize-avoid-c-arrays.AllowStringArrays: true

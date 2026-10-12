@@ -1,5 +1,7 @@
 #pragma once
 
+// IWYU pragma: private, include "dry.h"
+
 // IWYU pragma: begin_exports
 
 #include <godot_cpp/classes/engine.hpp>
@@ -16,6 +18,7 @@
 
 // the weird mixed types here are due to the order of initialization (we can't use the godot allocator until static init has finished, etc)
 extern std::vector<std::function<void()>> &register_singletons() noexcept;
+extern godot::LocalVector<godot::Node *> &add_singletons_to_scene_tree() noexcept;
 extern std::vector<std::function<void()>> &pre_init_eager_globals() noexcept;
 extern std::vector<std::function<void()>> &init_eager_globals() noexcept;
 extern godot::LocalVector<std::function<void()>> &free_lazy_globals() noexcept;
@@ -81,11 +84,12 @@ public:
 	explicit LazyResource(const char32_t *path, bool eager = false) noexcept : LazyGlobal<T>{
 				[path, eager]() -> godot::Ref<T> {
 					const godot::String path_string{ path };
-					if (eager && likely(godot::ResourceLoader::get_singleton()->load_threaded_get_status(path_string) != godot::ResourceLoader::THREAD_LOAD_INVALID_RESOURCE)) {
-						return godot::ResourceLoader::get_singleton()->load_threaded_get(path_string);
+					godot::ResourceLoader *loader = godot::ResourceLoader::get_singleton();
+					if (eager && likely(loader->load_threaded_get_status(path_string) != godot::ResourceLoader::THREAD_LOAD_INVALID_RESOURCE)) {
+						return loader->load_threaded_get(path_string);
 					}
 
-					return godot::ResourceLoader::get_singleton()->load(path_string, T::get_class_static());
+					return loader->load(path_string, T::get_class_static());
 				},
 				eager,
 			} {
@@ -182,8 +186,6 @@ using LazyNodePath = LazyVariant<godot::NodePath, const char32_t *>;
 
 extern const LazyStringName CHANGED;
 
-void add_singleton_node_to_scene_tree(godot::Object *p_singleton);
-
 template <typename T>
 class RegisterSingleton {
 public:
@@ -199,9 +201,8 @@ private:
 		engine->register_singleton(T::get_class_static(), singleton);
 
 		if constexpr (godot::TypeInherits<godot::Node, T>::value) {
-			pre_init_eager_globals().push_back([singleton]() -> void {
-				add_singleton_node_to_scene_tree(singleton);
-			});
+			singleton->set_name(T::get_class_static());
+			add_singletons_to_scene_tree().push_back(singleton);
 			free_singletons().push_back([engine]() -> void {
 				engine->unregister_singleton(T::get_class_static());
 				// Node is owned by and will be deleted by scene tree

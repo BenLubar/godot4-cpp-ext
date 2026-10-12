@@ -2,6 +2,8 @@
 
 #pragma once
 
+// IWYU pragma: private, include "dry.h"
+
 // IWYU pragma: begin_exports
 
 #include <godot_cpp/core/defs.hpp>

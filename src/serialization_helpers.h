@@ -1,6 +1,6 @@
 #pragma once
 
-#include "packed_array.h"
+// IWYU pragma: private, include "dry.h"
 
 #ifdef SQUIRREL_ENABLED
 #define SERIALIZE_SCRIPT(m_name) \

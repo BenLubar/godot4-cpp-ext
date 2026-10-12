@@ -2,6 +2,16 @@
 
 #pragma once
 
+#if defined(__GNUC__) && defined(DEBUG_ENABLED)
+// some warnings that are very useful in development
+#pragma GCC diagnostic error "-Wimplicit-fallthrough"
+#pragma GCC diagnostic error "-Winit-self"
+#pragma GCC diagnostic error "-Wsequence-point"
+#pragma GCC diagnostic error "-Wswitch"
+// and one that isn't
+#pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
+#endif
+
 // IWYU pragma: always_keep
 // IWYU pragma: begin_exports
 
@@ -18,17 +28,9 @@
 #include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/typed_dictionary.hpp>
 
-#if defined(__GNUC__) && defined(DEBUG_ENABLED)
-// some warnings that are very useful in development
-#pragma GCC diagnostic error "-Wimplicit-fallthrough"
-#pragma GCC diagnostic error "-Winit-self"
-#pragma GCC diagnostic error "-Wsequence-point"
-#pragma GCC diagnostic error "-Wswitch"
-#endif
-
 using namespace godot;
 
-#include "dry_extra.h" // IWYU pragma: export
+#include "dry_extra.h" // IWYU pragma: keep
 
 // IWYU pragma: end_exports
 

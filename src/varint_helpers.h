@@ -1,5 +1,7 @@
 #pragma once
 
+// IWYU pragma: private, include "dry.h"
+
 #include <godot_cpp/core/defs.hpp>
 
 #include <godot_cpp/variant/packed_byte_array.hpp>

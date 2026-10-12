@@ -1,5 +1,7 @@
 #pragma once
 
+// IWYU pragma: private, include "dry.h"
+
 #include "godot_squirrel_defs.h" // IWYU pragma: export
 
 #include <godot_cpp/core/defs.hpp>

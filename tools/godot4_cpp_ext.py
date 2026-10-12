@@ -13,6 +13,8 @@ def generate(env):
 		env["CXXFLAGS"].remove("-std=c++17")
 		env.Append(CXXFLAGS=["-std=c++20"])
 
+	env["OBJSUFFIX"] = env["suffix"] + env["OBJSUFFIX"]
+
 	env.AddMethod(init_precompiled_header, "InitDRY")
 
 def init_precompiled_header(env, sources):
@@ -39,7 +41,7 @@ def init_precompiled_header(env, sources):
 	shared_object_builder.add_emitter(".h", SCons.Defaults.SharedObjectEmitter)
 
 	pch = env.SharedObject(
-		target="godot4-cpp-ext/src/dry.h.gch",
+		target="godot4-cpp-ext/src/dry.h" + env["suffix"] + ".gch",
 		source=pch_file,
 		CXXFLAGS=["-x", "c++-header", "$CXXFLAGS"])
 
