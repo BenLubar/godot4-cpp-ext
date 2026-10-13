@@ -8,11 +8,6 @@
 
 #include <godot_cpp/variant/string.hpp>
 
-#define SQUSEDOUBLE
-#define _SQ64 /* NOLINT(bugprone-reserved-identifier) */
-#define KEEP_SLOT_ORDER
-#include "../../godot4-squirrel/squirrel/include/squirrel.h" // IWYU pragma: export
-
 // wrappers for godot::String
 [[nodiscard]] _FORCE_INLINE_ SQRESULT sq_throwerror(HSQUIRRELVM p_vm, const godot::String &p_message) {
 	return sq_throwerror(p_vm, p_message.utf8().get_data());
