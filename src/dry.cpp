@@ -39,15 +39,15 @@ void startup_shared_gdextension() {
 		add_singletons_to_scene_tree().clear();
 	}
 
-	if (unlikely(Engine::get_singleton()->is_editor_hint())) {
-		// Don't wait for resources to load if we're importing or in the editor.
-		pre_init_eager_globals().clear();
-		init_eager_globals().clear();
-		return;
-	}
-
-	for (const std::function<void()> &pre_init_eager_global : pre_init_eager_globals()) {
-		pre_init_eager_global();
+	if (likely(!Engine::get_singleton()->is_editor_hint())) {
+		// Don't load assets in parallel in the editor or when importing.
+		//
+		// Waiting for an asset to complete a threaded load flushes the call queue,
+		// which results in some editor functions running before they're supposed to.
+		// This (at least) fixes an error message about a timer at startup.
+		for (const std::function<void()> &pre_init_eager_global : pre_init_eager_globals()) {
+			pre_init_eager_global();
+		}
 	}
 	pre_init_eager_globals().clear();
 

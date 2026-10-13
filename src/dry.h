@@ -2,12 +2,14 @@
 
 #pragma once
 
-#if defined(__GNUC__) && defined(DEBUG_ENABLED)
+#ifdef __GNUC__
+#ifdef DEBUG_ENABLED
 // some warnings that are very useful in development
 #pragma GCC diagnostic error "-Wimplicit-fallthrough"
 #pragma GCC diagnostic error "-Winit-self"
 #pragma GCC diagnostic error "-Wsequence-point"
 #pragma GCC diagnostic error "-Wswitch"
+#endif
 // and one that isn't
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
 #endif
