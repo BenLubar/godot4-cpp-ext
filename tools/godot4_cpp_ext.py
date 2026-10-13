@@ -41,7 +41,7 @@ def init_precompiled_header(env, sources):
 	shared_object_builder.add_emitter(".h", SCons.Defaults.SharedObjectEmitter)
 
 	pch = env.SharedObject(
-		target="godot4-cpp-ext/src/dry.h" + env["suffix"] + ".gch",
+		target="godot4-cpp-ext/src/dry.h.gch",
 		source=pch_file,
 		CXXFLAGS=["-x", "c++-header", "$CXXFLAGS"])
 
