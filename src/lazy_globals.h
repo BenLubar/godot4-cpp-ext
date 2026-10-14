@@ -60,7 +60,7 @@ public:
 		_maybe_init();
 		return _ref;
 	}
-	operator godot::Ref<T>() const {
+	operator const godot::Ref<T> &() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return _ref;
 	}
