@@ -35,9 +35,17 @@ String enum_property_hint(const String &type_name, bool is_bitfield) {
 
 	PackedStringArray enum_hint_parts;
 	enum_hint_parts.resize(enum_constants.size());
+	// spreading these strings across a whole bunch of variables seems to mitigate the 32-bit crash
+	const String colon = ":";
 	for (int64_t i = 0; i < enum_constants.size(); i++) {
-		DEV_ASSERT(ClassDB::class_get_integer_constant_enum(class_name, enum_constants[i], true) == enum_name);
-		enum_hint_parts[i] = vformat("%s:%d", enum_constants[i], ClassDB::class_get_integer_constant(class_name, enum_constants[i]));
+		String name = enum_constants[i];
+		StringName name_sn = name;
+		const int64_t value = ClassDB::class_get_integer_constant(class_name, name_sn);
+		DEV_ASSERT(ClassDB::class_get_integer_constant_enum(class_name, name_sn, true) == enum_name);
+		String number = String::num_int64(value);
+		name += colon;
+		name += number;
+		enum_hint_parts[i] = name;
 	}
 
 	return String(",").join(enum_hint_parts);
