@@ -6,15 +6,12 @@
 
 template<typename T>
 struct requires_reference_property_getter {
+	static constexpr bool value = !std::is_trivially_copy_constructible_v<T>;
+};
+template<typename T>
+struct requires_reference_property_getter<godot::TypedArray<T>> {
+	// TypedArray<T> is used for properties that don't get used from the gdextension side; otherwise, use PackedArray<T>
 	static constexpr bool value = false;
-};
-template<typename T>
-struct requires_reference_property_getter<PackedArray<T>> {
-	static constexpr bool value = true;
-};
-template<typename T>
-struct requires_reference_property_getter<godot::Ref<T>> {
-	static constexpr bool value = true;
 };
 template<typename T>
 static constexpr bool requires_reference_property_getter_v = requires_reference_property_getter<T>::value;
@@ -63,23 +60,20 @@ public: \
 	[[nodiscard]] m_type is_##m_name() const; \
 	void set_##m_name(std::conditional_t<std::is_trivially_copy_constructible_v<m_type>, m_type, const m_type &> new_##m_name)
 
-#define DECLARE_PROPERTY_REF(m_type, m_name, ...) \
+#define DECLARE_PROPERTY_CR(m_type, m_name, ...) \
 private: \
-	godot::Ref<m_type> _##m_name __VA_ARGS__; \
+	m_type _##m_name __VA_ARGS__; \
 \
 public: \
-	[[nodiscard]] _ALWAYS_INLINE_ const godot::Ref<m_type> &get_##m_name() const _LIFETIME_BOUND_ { return _##m_name; } \
-	[[nodiscard]] godot::Ref<m_type> get_##m_name##_bind() const { return get_##m_name(); } \
-	void set_##m_name(const godot::Ref<m_type> &new_##m_name)
+	[[nodiscard]] _ALWAYS_INLINE_ const m_type &get_##m_name() const _LIFETIME_BOUND_ { return _##m_name; } \
+	[[nodiscard]] m_type get_##m_name##_bind() const { return get_##m_name(); } \
+	void set_##m_name(const m_type &new_##m_name)
+
+#define DECLARE_PROPERTY_REF(m_type, m_name, ...) \
+	DECLARE_PROPERTY_CR(godot::Ref<m_type>, m_name __VA_OPT__(,) __VA_ARGS__)
 
 #define DECLARE_PROPERTY_ARRAY(m_type, m_name, ...) \
-private: \
-	PackedArray<m_type> _##m_name __VA_ARGS__; \
-\
-public: \
-	[[nodiscard]] _ALWAYS_INLINE_ const PackedArray<m_type> &get_##m_name() const _LIFETIME_BOUND_ { return _##m_name; } \
-	[[nodiscard]] PackedArray<m_type> get_##m_name##_bind() const { return get_##m_name(); } \
-	void set_##m_name(const PackedArray<m_type> &new_##m_name)
+	DECLARE_PROPERTY_CR(PackedArray<m_type>, m_name __VA_OPT__(,) __VA_ARGS__)
 
 #define DECLARE_PROPERTY_OBJECTID(m_type, m_name, ...) \
 public: /* allow direct access to the ObjectID without going through ObjectDB twice */ \
@@ -98,6 +92,11 @@ public: \
 
 #define BIND_PROPERTY(m_type, m_name, ...) \
 	ClassDB::bind_method(D_METHOD("get_" #m_name), &self_type::get_##m_name); \
+	ClassDB::bind_method(D_METHOD("set_" #m_name, #m_name), &self_type::set_##m_name); \
+	ADD_PROPERTY(PropertyInfo(m_type, #m_name __VA_OPT__(, ) __VA_ARGS__), "set_" #m_name, "get_" #m_name)
+
+#define BIND_PROPERTY_CR(m_type, m_name, ...) \
+	ClassDB::bind_method(D_METHOD("get_" #m_name), &self_type::get_##m_name##_bind); \
 	ClassDB::bind_method(D_METHOD("set_" #m_name, #m_name), &self_type::set_##m_name); \
 	ADD_PROPERTY(PropertyInfo(m_type, #m_name __VA_OPT__(, ) __VA_ARGS__), "set_" #m_name, "get_" #m_name)
 
