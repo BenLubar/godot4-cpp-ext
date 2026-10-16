@@ -27,7 +27,6 @@
 #include "squirrel_helpers.h"
 #endif
 
-#include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/typed_dictionary.hpp>
 
 using namespace godot;

@@ -4,16 +4,16 @@
 
 #include <godot_cpp/core/class_db.hpp> // IWYU pragma: export
 
-template<typename T>
+template <typename T>
 struct requires_reference_property_getter {
 	static constexpr bool value = !std::is_trivially_copy_constructible_v<T>;
 };
-template<typename T>
+template <typename T>
 struct requires_reference_property_getter<godot::TypedArray<T>> {
 	// TypedArray<T> is used for properties that don't get used from the gdextension side; otherwise, use PackedArray<T>
 	static constexpr bool value = false;
 };
-template<typename T>
+template <typename T>
 static constexpr bool requires_reference_property_getter_v = requires_reference_property_getter<T>::value;
 
 godot::String enum_property_hint(const godot::String &type_name, bool is_bitfield);
@@ -24,7 +24,9 @@ private: \
 \
 public: \
 	static_assert(!requires_reference_property_getter_v<m_type>); \
-	[[nodiscard]] _ALWAYS_INLINE_ m_type get_##m_name() const { return _##m_name; } \
+	[[nodiscard]] _ALWAYS_INLINE_ m_type get_##m_name() const { \
+		return _##m_name; \
+	} \
 	void set_##m_name(std::conditional_t<std::is_trivially_copy_constructible_v<m_type>, m_type, const m_type &> new_##m_name)
 
 #define DECLARE_PROPERTY_NOIMP(m_type, m_name, ...) \
@@ -40,7 +42,9 @@ private: \
 	m_type _##m_name __VA_ARGS__; \
 \
 public: \
-	[[nodiscard]] m_type get_##m_name() const override { return _##m_name; } \
+	[[nodiscard]] m_type get_##m_name() const override { \
+		return _##m_name; \
+	} \
 	void set_##m_name(std::conditional_t<std::is_trivially_copy_constructible_v<m_type>, m_type, const m_type &> new_##m_name)
 
 #define DECLARE_PROPERTY_IS(m_type, m_name, ...) \
@@ -49,7 +53,9 @@ private: \
 \
 public: \
 	static_assert(!requires_reference_property_getter_v<m_type>); \
-	[[nodiscard]] _ALWAYS_INLINE_ m_type is_##m_name() const { return _##m_name; } \
+	[[nodiscard]] _ALWAYS_INLINE_ m_type is_##m_name() const { \
+		return _##m_name; \
+	} \
 	void set_##m_name(std::conditional_t<std::is_trivially_copy_constructible_v<m_type>, m_type, const m_type &> new_##m_name)
 
 #define DECLARE_PROPERTY_IS_NOIMP(m_type, m_name, ...) \
@@ -65,15 +71,39 @@ private: \
 	m_type _##m_name __VA_ARGS__; \
 \
 public: \
-	[[nodiscard]] _ALWAYS_INLINE_ const m_type &get_##m_name() const _LIFETIME_BOUND_ { return _##m_name; } \
-	[[nodiscard]] m_type get_##m_name##_bind() const { return get_##m_name(); } \
+	[[nodiscard]] _ALWAYS_INLINE_ m_type &get_##m_name##_ref() _LIFETIME_BOUND_ { \
+		return _##m_name; /* caller must handle what the setter would have done */ \
+	} \
+	[[nodiscard]] _ALWAYS_INLINE_ const m_type &get_##m_name() const _LIFETIME_BOUND_ { \
+		return _##m_name; \
+	} \
+	[[nodiscard]] m_type get_##m_name##_bind() const { \
+		return get_##m_name(); \
+	} \
 	void set_##m_name(const m_type &new_##m_name)
 
 #define DECLARE_PROPERTY_REF(m_type, m_name, ...) \
-	DECLARE_PROPERTY_CR(godot::Ref<m_type>, m_name __VA_OPT__(,) __VA_ARGS__)
+	DECLARE_PROPERTY_CR(godot::Ref<m_type>, m_name __VA_OPT__(, ) __VA_ARGS__)
 
 #define DECLARE_PROPERTY_ARRAY(m_type, m_name, ...) \
-	DECLARE_PROPERTY_CR(PackedArray<m_type>, m_name __VA_OPT__(,) __VA_ARGS__)
+	DECLARE_PROPERTY_CR(PackedArray<m_type>, m_name __VA_OPT__(, ) __VA_ARGS__)
+
+// can't use DECLARE_PROPERTY_CR because the type has a comma in it.
+#define DECLARE_PROPERTY_DICTIONARY(m_key, m_value, m_name, ...) \
+private: \
+	godot::TypedDictionary<m_key, m_value> _##m_name __VA_ARGS__; \
+\
+public: \
+	[[nodiscard]] _ALWAYS_INLINE_ godot::TypedDictionary<m_key, m_value> &get_##m_name##_ref() _LIFETIME_BOUND_ { \
+		return _##m_name; /* caller must handle what the setter would have done */ \
+	} \
+	[[nodiscard]] _ALWAYS_INLINE_ const godot::TypedDictionary<m_key, m_value> &get_##m_name() const _LIFETIME_BOUND_ { \
+		return _##m_name; \
+	} \
+	[[nodiscard]] godot::TypedDictionary<m_key, m_value> get_##m_name##_bind() const { \
+		return get_##m_name(); \
+	} \
+	void set_##m_name(const godot::TypedDictionary<m_key, m_value> &new_##m_name)
 
 #define DECLARE_PROPERTY_OBJECTID(m_type, m_name, ...) \
 public: /* allow direct access to the ObjectID without going through ObjectDB twice */ \
@@ -86,7 +116,7 @@ public: \
 #ifdef SQUIRREL_ENABLED
 #define DECLARE_PROPERTY_SCRIPT(m_name) \
 	DECLARE_PROPERTY_REF(SquirrelScript, m_name); \
-	DECLARE_PROPERTY(String, m_name##_template); \
+	DECLARE_PROPERTY_CR(String, m_name##_template); \
 	Ref<SquirrelFunction> _##m_name##_import_cache
 #endif
 
@@ -170,10 +200,13 @@ public: \
 	ClassDB::bind_method(D_METHOD("set_" #m_name, #m_name), &self_type::set_##m_name); \
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, #m_name, PROPERTY_HINT_NODE_TYPE, #m_type, PROPERTY_USAGE_EDITOR), "set_" #m_name, "get_" #m_name)
 
+#define BIND_PROPERTY_DICTIONARY(m_key, m_value, m_name) \
+	BIND_PROPERTY_CR(Variant::DICTIONARY, m_name, PROPERTY_HINT_DICTIONARY_TYPE, #m_key ";" #m_value)
+
 #ifdef SQUIRREL_ENABLED
 #define BIND_PROPERTY_SCRIPT(m_name) \
 	BIND_PROPERTY_RESOURCE(SquirrelScript, m_name); \
-	BIND_PROPERTY(Variant::STRING, m_name##_template)
+	BIND_PROPERTY_CR(Variant::STRING, m_name##_template)
 #endif
 
 #define IMPLEMENT_PROPERTY_ONCHANGE(m_class, m_type, m_name, m_onchange) \
@@ -285,6 +318,17 @@ public: \
 			} \
 		} \
 	}
+#define IMPLEMENT_PROPERTY_DICTIONARY_ONCHANGE(m_class, m_key, m_value, m_name, m_onchange) \
+	void m_class::set_##m_name(const TypedDictionary<m_key, m_value> &new_##m_name) { \
+		if (_##m_name != new_##m_name) { \
+			_##m_name = new_##m_name; \
+			m_onchange; \
+		} \
+	}
+#define IMPLEMENT_PROPERTY_DICTIONARY(m_class, m_key, m_value, m_name) \
+	IMPLEMENT_PROPERTY_DICTIONARY_ONCHANGE(m_class, m_key, m_value, m_name, emit_changed())
+#define IMPLEMENT_PROPERTY_DICTIONARY_SIMPLE(m_class, m_key, m_value, m_name) \
+	IMPLEMENT_PROPERTY_DICTIONARY_ONCHANGE(m_class, m_key, m_value, m_name, )
 
 #ifdef SQUIRREL_ENABLED
 #define IMPLEMENT_PROPERTY_SCRIPT(m_class, m_name) \

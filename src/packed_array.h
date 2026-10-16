@@ -10,7 +10,7 @@
 
 #include <godot_cpp/classes/ref.hpp>
 
-#include <godot_cpp/variant/variant.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
 #include <godot_cpp/templates/vector.hpp>
 
