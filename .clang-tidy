@@ -34,7 +34,7 @@ Checks:
   - -readability-use-anyofallof
 FormatStyle: file
 HeaderFilterRegex: '.*\.(h|hpp)$'
-ExcludeHeaderFilterRegex: '(^|.*/)(thirdparty|squirrel|mbedtls|KTX-Software|steam)/.*'
+ExcludeHeaderFilterRegex: '(^|.*/)(thirdparty|squirrel|mbedtls|KTX-Software|steam|webrtc-native|godot-cpp)/.*'
 CheckOptions:
   bugprone-implicit-widening-of-multiplication-result.IgnoreConstantIntExpr: true
   modernize-avoid-c-arrays.AllowStringArrays: true
