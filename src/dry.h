@@ -31,9 +31,9 @@
 
 using namespace godot;
 
-#include "dry_extra.h" // IWYU pragma: keep
-
 // IWYU pragma: end_exports
+
+#include "dry_extra.h" // IWYU pragma: export // exported separately so clangd doesn't complain about an unused header
 
 void initialize_shared_gdextension_types(godot::ModuleInitializationLevel p_level);
 void initialize_shared_gdextension_singletons();
