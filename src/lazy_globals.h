@@ -107,12 +107,12 @@ class LazyVariant {
 	mutable T *_variant = nullptr;
 
 	void _maybe_init() const {
-		if (unlikely(!_variant)) {
+		if (unlikely(_variant == nullptr)) {
 			DEV_ASSERT(lazy_globals_must_be_first_used_from_the_main_thread);
 
 			_variant = memnew(T(_init));
 			free_lazy_globals().push_back([this]() -> void {
-				if (_variant) {
+				if (likely(_variant != nullptr)) {
 					memdelete(_variant);
 					_variant = nullptr;
 				}
@@ -146,12 +146,12 @@ class LazyVariant<T, void> {
 	mutable T *_variant = nullptr;
 
 	void _maybe_init() const {
-		if (unlikely(!_variant)) {
+		if (unlikely(_variant == nullptr)) {
 			DEV_ASSERT(lazy_globals_must_be_first_used_from_the_main_thread);
 
 			_variant = memnew(T);
 			free_lazy_globals().push_back([this]() -> void {
-				if (_variant) {
+				if (likely(_variant != nullptr)) {
 					memdelete(_variant);
 					_variant = nullptr;
 				}
@@ -180,9 +180,55 @@ public:
 	}
 };
 
+template <>
+class LazyVariant<godot::PackedStringArray, std::initializer_list<const char32_t *>> {
+	const std::initializer_list<const char32_t *> _init;
+	mutable godot::PackedStringArray *_variant = nullptr;
+
+	void _maybe_init() const {
+		if (unlikely(_variant == nullptr)) {
+			DEV_ASSERT(lazy_globals_must_be_first_used_from_the_main_thread);
+
+			_variant = memnew(godot::PackedStringArray);
+			_variant->resize(_init.size());
+			int64_t i = 0;
+			for (const char32_t *s : _init) {
+				_variant->set(i++, s);
+			}
+			free_lazy_globals().push_back([this]() -> void {
+				if (likely(_variant != nullptr)) {
+					memdelete(_variant);
+					_variant = nullptr;
+				}
+			});
+		}
+	}
+
+public:
+	LazyVariant(const std::initializer_list<const char32_t *> &init) noexcept : _init(init) {
+		init_eager_globals().emplace_back([this]() -> void {
+			_maybe_init();
+		});
+	}
+
+	operator godot::PackedStringArray &() const {
+		_maybe_init();
+		return *_variant;
+	}
+	godot::PackedStringArray &operator*() const {
+		_maybe_init();
+		return *_variant;
+	}
+	godot::PackedStringArray *operator->() const {
+		_maybe_init();
+		return _variant;
+	}
+};
+
 using LazyString = LazyVariant<godot::String, const char32_t *>;
 using LazyStringName = LazyVariant<godot::StringName, const char32_t *>;
 using LazyNodePath = LazyVariant<godot::NodePath, const char32_t *>;
+using LazyPackedStringArray = LazyVariant<godot::PackedStringArray, std::initializer_list<const char32_t *>>;
 
 extern const LazyStringName CHANGED;
 
