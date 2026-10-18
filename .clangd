@@ -1,6 +1,9 @@
 Style:
   AngledHeaders:
     - "godot_cpp/.*"
+    - "steam/.*"
 Diagnostics:
   ClangTidy:
     FastCheckFilter: None
+Completion:
+  HeaderInsertion: Never
