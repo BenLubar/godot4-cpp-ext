@@ -56,23 +56,23 @@ public:
 		}
 	}
 
-	const godot::Ref<T> &ref() const {
+	_FORCE_INLINE_ const godot::Ref<T> &ref() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return _ref;
 	}
-	operator const godot::Ref<T> &() const _LIFETIME_BOUND_ {
+	_FORCE_INLINE_ operator const godot::Ref<T> &() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return _ref;
 	}
-	T *operator*() const {
+	_FORCE_INLINE_ T *operator*() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return _ref.ptr();
 	}
-	T *operator->() const {
+	_FORCE_INLINE_ T *operator->() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return _ref.ptr();
 	}
-	void operator=(const godot::Ref<T> &value) {
+	_FORCE_INLINE_ void operator=(const godot::Ref<T> &value) {
 		_maybe_init();
 		_ref = value;
 	}
@@ -127,15 +127,15 @@ public:
 		});
 	}
 
-	operator T &() const {
+	_FORCE_INLINE_ operator T &() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return *_variant;
 	}
-	T &operator*() const {
+	_FORCE_INLINE_ T &operator*() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return *_variant;
 	}
-	T *operator->() const {
+	_FORCE_INLINE_ T *operator->() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return _variant;
 	}
@@ -166,34 +166,35 @@ public:
 		});
 	}
 
-	operator T &() const {
+	_FORCE_INLINE_ operator T &() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return *_variant;
 	}
-	T &operator*() const {
+	_FORCE_INLINE_ T &operator*() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return *_variant;
 	}
-	T *operator->() const {
+	_FORCE_INLINE_ T *operator->() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return _variant;
 	}
 };
 
-template <>
-class LazyVariant<godot::PackedStringArray, std::initializer_list<const char32_t *>> {
-	const std::initializer_list<const char32_t *> _init;
-	mutable godot::PackedStringArray *_variant = nullptr;
+template <typename T, typename E>
+class LazyVariant<T, std::initializer_list<E>> {
+	const std::vector<E> _init;
+	mutable T *_variant = nullptr;
 
 	void _maybe_init() const {
 		if (unlikely(_variant == nullptr)) {
 			DEV_ASSERT(lazy_globals_must_be_first_used_from_the_main_thread);
 
-			_variant = memnew(godot::PackedStringArray);
-			_variant->resize(_init.size());
-			int64_t i = 0;
-			for (const char32_t *s : _init) {
-				_variant->set(i++, s);
+			_variant = memnew(T);
+			CRASH_COND(_variant->resize(_init.size()) != godot::OK);
+			auto *ptr = _variant->ptrw();
+			for (const E &element : _init) {
+				*ptr = element;
+				ptr++;
 			}
 			free_lazy_globals().push_back([this]() -> void {
 				if (likely(_variant != nullptr)) {
@@ -205,21 +206,21 @@ class LazyVariant<godot::PackedStringArray, std::initializer_list<const char32_t
 	}
 
 public:
-	LazyVariant(const std::initializer_list<const char32_t *> &init) noexcept : _init(init) {
+	LazyVariant(std::initializer_list<E> init) noexcept : _init{ init } {
 		init_eager_globals().emplace_back([this]() -> void {
 			_maybe_init();
 		});
 	}
 
-	operator godot::PackedStringArray &() const {
+	_FORCE_INLINE_ operator T &() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return *_variant;
 	}
-	godot::PackedStringArray &operator*() const {
+	_FORCE_INLINE_ T &operator*() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return *_variant;
 	}
-	godot::PackedStringArray *operator->() const {
+	_FORCE_INLINE_ T *operator->() const _LIFETIME_BOUND_ {
 		_maybe_init();
 		return _variant;
 	}
